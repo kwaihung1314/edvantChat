@@ -1,17 +1,14 @@
 <template>
   <v-container grid-list-md>
-    <h1 class="app-header mb-4">Edvant Chatroom</h1>
+    <h1 class="app-header">Edvant Chatroom</h1>
+    <h2 class="user-header mb-4">Your name: <span class="cyan--text">{{username}}</span></h2>
     <v-layout wrap>
       <v-flex xs12>
         <div class="teal lighten-3 online-box pa-3">
           <div class="header">Currently online</div>
-          <v-chip>
-            <v-avatar class="teal">B</v-avatar>
-            Beryl
-          </v-chip>
-          <v-chip>
-            <v-avatar class="teal">T</v-avatar>
-            Tony
+          <v-chip v-for="(user, index) in onlineList" :key="index">
+            <v-avatar class="teal">{{user.substr(0,1)}}</v-avatar>
+            {{user}}
           </v-chip>
         </div>
       </v-flex>
@@ -50,12 +47,25 @@
 </template>
 
 <script>
+import io from 'socket.io-client'
 export default {
   data () {
     return {
       onlineList: [],
-      messageList: []
+      messageList: [],
+      socket: io('http://localhost:3000'),
+      username: ''
     }
+  },
+  mounted () {
+    this.username = this.$route.params.name
+    this.socket.emit('user entered', this.username)
+    this.socket.on('update users', (userList) => {
+      console.log('update user')
+      for (let key in userList) {
+        this.onlineList.push(userList[key])
+      }
+    })
   }
 }
 </script>
@@ -65,7 +75,7 @@ export default {
   font-family: monospace, 'Courier New', Courier;
 }
 
-.app-header {
+.app-header, .user-header {
   text-align: center;
 }
 
