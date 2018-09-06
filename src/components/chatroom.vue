@@ -16,7 +16,16 @@
         <div class="chat-box mt-4">
           <div class="message-box pa-4 blue lighten-3">
             <div class="message-window">
-              <div class="message-block others-message">
+              <div v-for="(message, index) in messageList"
+                :key="index"
+                class="message-block"
+                :class="{'others-message': socket.id !== message.userId}">
+                <div class="message">
+                  <div class="senderName">{{message.username}}</div>
+                  <div class="text">{{message.content}}</div>
+                </div>
+              </div>
+              <!-- <div class="message-block others-message">
                 <div class="message">
                   <div class="senderName">Tony</div>
                   <div class="text">Hello There! Hello There! Hello There! Hello There! Hello There! Hello There! Hello There!</div>
@@ -27,18 +36,20 @@
                   <div class="senderName">Tony</div>
                   <div class="text">Hello There!</div>
                 </div>
-              </div>
+              </div> -->
             </div>
           </div>
           <div class="typing-box blue lighten-4">
-            <v-layout wrap>
-              <v-flex xs10 class="input-box pa-3">
-                <input type="text" placeholder="Enter message">
-              </v-flex>
-              <v-flex xs2 d-flex align-center justify-center class="send-box">
-                <v-btn color="#FFB300">Send</v-btn>
-              </v-flex>
-            </v-layout>
+            <form action="" @submit.prevent="sendMessage">
+              <v-layout wrap>
+                <v-flex xs10 class="input-box pa-3">
+                  <input type="text" placeholder="Enter message" v-model="messageInput">
+                </v-flex>
+                <v-flex xs2 align-center justify-center class="send-box">
+                  <v-btn color="#FFB300" type="submit">Send</v-btn>
+                </v-flex>
+              </v-layout>
+            </form>
           </div>
         </div>
       </v-flex>
@@ -53,28 +64,41 @@ export default {
     return {
       onlineList: [],
       messageList: [],
-      socket: io('http://localhost:3000'),
-      username: ''
+      socket: io('http://10.0.1.7:3000', {path: ''}),
+      username: '',
+      messageInput: ''
+    }
+  },
+  methods: {
+    sendMessage () {
+      this.socket.emit('message', {
+        userId: this.socket.id,
+        username: this.username,
+        content: this.messageInput
+      })
+      this.messageInput = ''
     }
   },
   mounted () {
     this.username = this.$route.params.name
-    this.socket.emit('user entered', this.username)
+    this.socket.on('connect', () => {
+      this.socket.emit('user entered', this.username)
+    })
     this.socket.on('update users', (userList) => {
       console.log('update user')
+      this.onlineList = []
       for (let key in userList) {
         this.onlineList.push(userList[key])
       }
+    })
+    this.socket.on('new message', (message) => {
+      this.messageList.push(message)
     })
   }
 }
 </script>
 
 <style scoped lang="scss">
-.container {
-  font-family: monospace, 'Courier New', Courier;
-}
-
 .app-header, .user-header {
   text-align: center;
 }
@@ -109,6 +133,7 @@ export default {
     }
     .send-box {
       width: 60px;
+      display: flex;
     }
   }
 }

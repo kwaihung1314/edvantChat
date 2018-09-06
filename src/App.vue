@@ -11,7 +11,7 @@ export default {
 </script>
 
 <style>
-/* #app {
-
-} */
+.container {
+  font-family: monospace, 'Courier New', Courier;
+}
 </style>
