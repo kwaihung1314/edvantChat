@@ -11,6 +11,7 @@
     "build": "node build/build.js"
   },
   "dependencies": {
+    "lodash.debounce": "^4.0.8",
     "material-design-icons-iconfont": "^3.0.3",
     "socket.io-client": "^2.1.1",
     "vue": "^2.5.2",
