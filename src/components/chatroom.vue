@@ -5,11 +5,14 @@
     <v-layout wrap>
       <v-flex xs12>
         <div class="teal lighten-3 online-box pa-3">
-          <div class="header">Currently online</div>
+          <div class="header">Currently online
+            <!-- <div class="roomMsg" v-show="EnterLeftMsg">{{EnterLeftMsg}}</div> -->
+          </div>
           <v-chip v-for="(user, index) in onlineList" :key="index">
             <v-avatar class="teal">{{user.substr(0,1)}}</v-avatar>
             {{user}}
           </v-chip>
+          <div class="typing" v-show="typingPerson">{{typingPerson}} is typing...</div>
         </div>
       </v-flex>
       <v-flex xs12>
@@ -17,36 +20,32 @@
           <div class="message-box pa-4 blue lighten-3">
             <div class="message-window">
               <div v-for="(message, index) in messageList"
-                :key="index"
-                class="message-block mb-2"
-                :class="{'others-message': socket.id !== message.userId}">
-                <div class="message">
-                  <div class="senderName">{{message.username}}</div><div class="text" v-html="message.content.replace(/\n/g, '<br/>')"></div>
+                :key="index">
+                <div class="message-block mb-2"
+                  v-if="message.type === 'newMsg'"
+                  :class="{'others-message': socket.id !== message.userId}">
+                  <div class="message">
+                    <div class="senderName">{{message.username}}</div><div class="text" v-html="message.content.replace(/\n/g, '<br/>')"></div>
+                    <div class="time">{{message.time}}</div>
+                  </div>
+                </div>
+                <div class="enterLeftMsg-block mb-2"
+                  v-if="message.type === 'Enter/Left'">
+                  <div class="message">{{message.content}}</div>
                 </div>
               </div>
-              <!-- <div class="message-block others-message">
-                <div class="message">
-                  <div class="senderName">Tony</div>
-                  <div class="text">Hello There! Hello There! Hello There! Hello There! Hello There! Hello There! Hello There!</div>
-                </div>
-              </div>
-              <div class="message-block">
-                <div class="message">
-                  <div class="senderName">Tony</div>
-                  <div class="text">Hello There!</div>
-                </div>
-              </div> -->
             </div>
           </div>
           <div class="typing-box blue lighten-4">
             <form action="" @submit.prevent="sendMessage">
               <v-layout wrap>
                 <v-flex xs10 class="input-box pa-3">
-                  <!-- <input type="text" placeholder="Enter message" v-model="messageInput"> -->
+                  <img v-if="imageSelected.url" :src="imageSelected.url" >
                   <textarea placeholder="Enter message" v-model="messageInput" @keydown="textareaKeyDown" @keyup="textareaKeyUp"
-                    @change="sendTyping"></textarea>
+                    @input="sendTyping"></textarea>
                 </v-flex>
                 <v-flex xs2 align-center justify-center class="send-box">
+                  <input type="file" @change="abc($event)">
                   <v-btn color="#FFB300" type="submit">Send</v-btn>
                 </v-flex>
               </v-layout>
@@ -75,20 +74,27 @@ export default {
       textKey: {
         16: false,
         13: false
+      },
+      typingPerson: null,
+      EnterLeftMsg: '',
+      imageSelected: {
+        url: ''
       }
     }
   },
   methods: {
     sendMessage () {
+      let msgTime = new Date()
       this.socket.emit('message', {
         userId: this.socket.id,
         username: this.username,
-        content: this.messageInput
+        content: this.messageInput,
+        time: `${msgTime.getHours().toString().length > 1 ? msgTime.getHours() : ('0' + msgTime.getHours())}:${msgTime.getMinutes().toString().length > 1 ? msgTime.getMinutes() : ('0' + msgTime.getMinutes())}`
       })
       this.messageInput = ''
     },
     sendTyping () {
-      this.socket.emit('typing')
+      this.socket.emit('typing', this.username)
     },
     updateTitle () {
       if (this.inFocus) {
@@ -97,6 +103,12 @@ export default {
         document.title = `(${this.noticeCount})${this.docTitle}`
       }
     },
+    delayRemoveTyping: debounce(function () {
+      this.typingPerson = null
+    }, 500),
+    delayRemoveOnline: debounce(function () {
+      this.EnterLeftMsg = ''
+    }, 1000),
     textareaKeyDown (e) {
       e = e || event
       if (e.keyCode in this.textKey) {
@@ -117,6 +129,17 @@ export default {
       if (e.keyCode in this.textKey) {
         this.textKey[e.keyCode] = false
       }
+    },
+    autoscroll () {
+      let messageBox = document.querySelector('.message-box')
+      messageBox.scrollTop = messageBox.scrollHeight - messageBox.clientHeight
+    },
+    abc (e) {
+      e = e || event
+      console.log(e)
+      this.imageSelected.url = window.URL.createObjectURL(e.target.files[0])
+      // window.URL.revokeObjectURL(this.imageSelected.url)
+      this.socket.emit('image', e.target.files[0])
     }
   },
   mounted () {
@@ -124,21 +147,43 @@ export default {
     this.socket.on('connect', () => {
       this.socket.emit('user entered', this.username)
     })
-    this.socket.on('update users', (userList) => {
-      console.log('update user')
+    this.socket.on('update users', (userList, msg) => {
       this.onlineList = []
       for (let key in userList) {
         this.onlineList.push(userList[key])
       }
+      this.messageList.push({
+        content: msg,
+        userId: '',
+        username: '',
+        type: 'Enter/Left'
+      })
+      this.$nextTick(() => {
+        this.autoscroll()
+      })
     })
     this.socket.on('new message', (message) => {
-      this.messageList.push(message)
+      this.messageList.push({
+        content: message.content,
+        userId: message.userId,
+        username: message.username,
+        type: 'newMsg',
+        time: message.time
+      })
       this.$nextTick(() => {
-        let messageBox = document.querySelector('.message-box')
-        messageBox.scrollTop = messageBox.scrollHeight - messageBox.clientHeight
+        this.autoscroll()
       })
       this.noticeCount++
       this.updateTitle()
+    })
+    this.socket.on('whos typing', (user) => {
+      this.typingPerson = user
+      this.delayRemoveTyping()
+    })
+    this.socket.on('new image', (buffer) => {
+      console.log(buffer)
+      let file = new Blob([buffer])
+      console.log(file)
     })
     window.onfocus = () => {
       this.noticeCount = 0
@@ -162,8 +207,15 @@ export default {
 
 .online-box {
   border-radius: 8px;
+  position: relative;
   .header {
     margin-bottom: 10px;
+  }
+  .typing {
+    position: absolute;
+    left: 10px;
+    bottom: -24px;
+    font-size: 14px;
   }
 }
 
@@ -211,17 +263,33 @@ export default {
   .message-block {
     display: flex;
     justify-content: flex-end;
+    .message {
+      border-radius: 5px;
+      background-color: #fff;
+      padding: 5px;
+      max-width: 250px;
+      word-break: break-all;
+      white-space: pre-wrap;
+      .time {
+        float: right;
+        font-size: 10px;
+        color: #9f9f9f;
+        margin-top: 5px;
+      }
+    }
+  }
+  .enterLeftMsg-block {
+    display: flex;
+    justify-content: center;
+    .message {
+      border-radius: 5px;
+      background-color: rgba(0, 0, 0, 0.1);
+      color: #888;
+      padding: 5px;
+    }
   }
   .others-message {
     justify-content: flex-start;
-  }
-  .message {
-    border-radius: 5px;
-    background-color: #fff;
-    padding: 5px;
-    max-width: 250px;
-    word-break: break-all;
-    white-space: pre-wrap;
   }
   .senderName {
     color: #9f9f9f;
