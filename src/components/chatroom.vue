@@ -1,13 +1,12 @@
 <template>
+<v-app>
   <v-container grid-list-md>
     <h1 class="app-header">Edvant Chatroom</h1>
     <h2 class="user-header mb-4">Your name: <span class="cyan--text">{{username}}</span></h2>
     <v-layout wrap>
       <v-flex xs12>
         <div class="teal lighten-3 online-box pa-3">
-          <div class="header">Currently online
-            <!-- <div class="roomMsg" v-show="EnterLeftMsg">{{EnterLeftMsg}}</div> -->
-          </div>
+          <div class="header">Currently online</div>
           <v-chip v-for="(user, index) in onlineList" :key="index">
             <v-avatar class="teal">{{user.substr(0,1)}}</v-avatar>
             {{user}}
@@ -26,6 +25,7 @@
                   :class="{'others-message': socket.id !== message.userId}">
                   <div class="message">
                     <div class="senderName">{{message.username}}</div><div class="text" v-html="message.content.replace(/\n/g, '<br/>')"></div>
+                    <img v-if="message.image" :src="message.image">
                     <div class="time">{{message.time}}</div>
                   </div>
                 </div>
@@ -39,13 +39,15 @@
           <div class="typing-box blue lighten-4">
             <form action="" @submit.prevent="sendMessage">
               <v-layout wrap>
-                <v-flex xs10 class="input-box pa-3">
-                  <img v-if="imageSelected.url" :src="imageSelected.url" >
+                <v-flex xs8 sm9 md10 class="input-box pa-3">
                   <textarea placeholder="Enter message" v-model="messageInput" @keydown="textareaKeyDown" @keyup="textareaKeyUp"
                     @input="sendTyping"></textarea>
                 </v-flex>
-                <v-flex xs2 align-center justify-center class="send-box">
-                  <input type="file" @change="abc($event)">
+                <v-flex xs4 sm3 md2 align-center justify-center class="send-box">
+                  <input type="file" id="imageInput" accept="image/*" v-show="false" @input="viewSendImage($event)">
+                  <v-btn fab light small color="#E53935" @click="triggerImage">
+                    <v-icon color="#ffffff" size="20">photo_library</v-icon>
+                  </v-btn>
                   <v-btn color="#FFB300" type="submit">Send</v-btn>
                 </v-flex>
               </v-layout>
@@ -54,7 +56,20 @@
         </div>
       </v-flex>
     </v-layout>
+    <v-dialog
+      v-model="openImageModel"
+      max-width="500"
+      @input="v => v || clearImageModel()">
+      <div class="content">
+        <img :src="imageSelected.url">
+        <v-divider></v-divider>
+        <div class="action">
+          <v-btn color="#FFB300" @click="sendImage">Send</v-btn>
+        </div>
+      </div>
+    </v-dialog>
   </v-container>
+</v-app>
 </template>
 
 <script>
@@ -78,8 +93,10 @@ export default {
       typingPerson: null,
       EnterLeftMsg: '',
       imageSelected: {
+        file: '',
         url: ''
-      }
+      },
+      openImageModel: false
     }
   },
   methods: {
@@ -134,12 +151,30 @@ export default {
       let messageBox = document.querySelector('.message-box')
       messageBox.scrollTop = messageBox.scrollHeight - messageBox.clientHeight
     },
-    abc (e) {
+    viewSendImage (e) {
       e = e || event
-      console.log(e)
+      this.imageSelected.file = e.target.files[0]
       this.imageSelected.url = window.URL.createObjectURL(e.target.files[0])
-      // window.URL.revokeObjectURL(this.imageSelected.url)
-      this.socket.emit('image', e.target.files[0])
+      this.openImageModel = true
+      document.getElementById('imageInput').value = ''
+    },
+    triggerImage () {
+      document.getElementById('imageInput').click()
+    },
+    clearImageModel () {
+      this.openImageModel = false
+      window.URL.revokeObjectURL(this.imageSelected.url)
+      this.imageSelected.url = ''
+      this.imageSelected.file = ''
+    },
+    sendImage () {
+      let msgTime = new Date()
+      this.socket.emit('image', {
+        userId: this.socket.id,
+        username: this.username,
+        time: `${msgTime.getHours().toString().length > 1 ? msgTime.getHours() : ('0' + msgTime.getHours())}:${msgTime.getMinutes().toString().length > 1 ? msgTime.getMinutes() : ('0' + msgTime.getMinutes())}`
+      }, this.imageSelected.file)
+      this.clearImageModel()
     }
   },
   mounted () {
@@ -180,10 +215,19 @@ export default {
       this.typingPerson = user
       this.delayRemoveTyping()
     })
-    this.socket.on('new image', (buffer) => {
-      console.log(buffer)
+    this.socket.on('new image', (message, buffer) => {
       let file = new Blob([buffer])
-      console.log(file)
+      this.messageList.push({
+        content: '',
+        image: window.URL.createObjectURL(file),
+        userId: message.userId,
+        username: message.username,
+        type: 'newMsg',
+        time: message.time
+      })
+      this.$nextTick(() => {
+        this.autoscroll()
+      })
     })
     window.onfocus = () => {
       this.noticeCount = 0
@@ -270,6 +314,9 @@ export default {
       max-width: 250px;
       word-break: break-all;
       white-space: pre-wrap;
+      img {
+        width: 100%;
+      }
       .time {
         float: right;
         font-size: 10px;
@@ -295,6 +342,21 @@ export default {
     color: #9f9f9f;
     font-weight: 500;
     font-size: 15px;
+  }
+}
+
+.v-dialog {
+  .content {
+    background-color: #fafafa;
+    padding: 10px;
+    img {
+      width: 480px;
+      margin-bottom: 10px;
+    }
+    .action {
+      margin-top: 10px;
+      text-align: right;
+    }
   }
 }
 </style>
