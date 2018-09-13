@@ -25,13 +25,14 @@
                   :class="{'others-message': socket.id !== message.userId}">
                   <div class="message">
                     <div class="senderName">{{message.username}}</div><div class="text" v-html="message.content.replace(/\n/g, '<br/>')"></div>
-                    <img v-if="message.image" :src="message.image">
+                    <img :id="message.image" v-if="message.image" :src="message.image">
                     <div class="time">{{message.time}}</div>
                   </div>
                 </div>
                 <div class="enterLeftMsg-block mb-2"
-                  v-if="message.type === 'Enter/Left'">
-                  <div class="message">{{message.content}}</div>
+                  v-if="message.type === 'enter' || message.type === 'left'">
+                  <div class="message"
+                    :class="{enter: message.type === 'enter'}">{{message.content}}</div>
                 </div>
               </div>
             </div>
@@ -182,7 +183,7 @@ export default {
     this.socket.on('connect', () => {
       this.socket.emit('user entered', this.username)
     })
-    this.socket.on('update users', (userList, msg) => {
+    this.socket.on('update users', (userList, msg, type) => {
       this.onlineList = []
       for (let key in userList) {
         this.onlineList.push(userList[key])
@@ -191,7 +192,7 @@ export default {
         content: msg,
         userId: '',
         username: '',
-        type: 'Enter/Left'
+        type: type
       })
       this.$nextTick(() => {
         this.autoscroll()
@@ -217,16 +218,17 @@ export default {
     })
     this.socket.on('new image', (message, buffer) => {
       let file = new Blob([buffer])
-      this.messageList.push({
+      let fileObj = {
         content: '',
         image: window.URL.createObjectURL(file),
         userId: message.userId,
         username: message.username,
         type: 'newMsg',
         time: message.time
-      })
+      }
+      this.messageList.push(fileObj)
       this.$nextTick(() => {
-        this.autoscroll()
+        document.getElementById(fileObj.image).onload = this.autoscroll
       })
     })
     window.onfocus = () => {
@@ -333,6 +335,9 @@ export default {
       background-color: rgba(0, 0, 0, 0.1);
       color: #888;
       padding: 5px;
+      &.enter {
+        background-color: rgba(247, 201, 64, 0.3)
+      }
     }
   }
   .others-message {
