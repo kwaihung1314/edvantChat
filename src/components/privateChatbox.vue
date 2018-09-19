@@ -26,7 +26,7 @@
             <textarea placeholder="Enter message" v-model="messageInput" @keydown="textareaKeyDown" @keyup="textareaKeyUp"></textarea>
           </v-flex>
           <v-flex xs5 sm3 align-center justify-center class="send-box">
-            <input type="file" id="imageInput" accept="image/*" v-show="false" @input="viewSendImage($event)">
+            <input type="file" id="imageInput" accept="image/*" v-show="false" @change="viewSendImage($event)">
             <v-btn fab light small color="#E53935" @click="triggerImage">
               <v-icon color="#ffffff" size="20">photo_library</v-icon>
             </v-btn>
@@ -135,6 +135,7 @@ export default {
     },
     viewSendImage (e) {
       e = e || event
+      console.log('viewSendImage')
       this.imageSelected.file = e.target.files[0]
       this.imageSelected.url = window.URL.createObjectURL(e.target.files[0])
       this.openImageModel = true

@@ -58,8 +58,9 @@
           :username="username"
           :boxId="user.id"
           :boxPerson="user.name"/>
-        <div class="emptyChat blue lighten-4 px-3" v-show="selectedChat === null">
-          <div class="statement">{{emptyChatName}} left the chatroom. Please select from the list to process other chat.</div>
+        <div class="emptyChat blue lighten-4 px-3" v-show="onlineArr.length === 0 || selectedChat === null">
+          <div class="statement" v-show="selectedChat === null">{{emptyChatName}} left the chatroom. Please select from the list to process other chat.</div>
+          <div class="statement" v-show="onlineArr.length === 0">No one is online!</div>
         </div>
       </v-flex>
     </v-layout>
@@ -208,6 +209,38 @@ export default {
         time: message.time
       })
     })
+    this.socket.on('new private image', (message, buffer) => {
+      let file = new Blob([buffer])
+      let fileObj = {
+        content: '',
+        image: window.URL.createObjectURL(file),
+        userId: message.fromId,
+        type: 'newMsg',
+        time: message.time
+      }
+      this.$refs[(message.fromId)][0].pushImage(fileObj)
+      for (let i = 0; i < this.onlineArr.length; i++) {
+        if (this.onlineArr[i].id === message.fromId) {
+          if (this.selectedChat !== i) {
+            this.onlineArr[i].flag = true
+          }
+          break
+        }
+      }
+      this.noticeCount++
+      this.updateTitle()
+    })
+    this.socket.on('my private image', (message, buffer) => {
+      let file = new Blob([buffer])
+      let fileObj = {
+        content: '',
+        image: window.URL.createObjectURL(file),
+        userId: message.fromId,
+        type: 'newMsg',
+        time: message.time
+      }
+      this.$refs[(message.toId)][0].pushImage(fileObj)
+    })
     window.onfocus = () => {
       this.noticeCount = 0
       this.inFocus = true
@@ -266,6 +299,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-direction: column;
   .statement {
     text-align: center;
   }
