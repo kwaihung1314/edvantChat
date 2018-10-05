@@ -11,7 +11,7 @@
             v-if="message.type === 'newMsg'"
             :class="{'others-message': socket.id !== message.userId}">
             <div class="message">
-              <div class="text" v-html="message.content.replace(/\n/g, '<br/>')"></div>
+              <div class="text">{{message.content}}</div>
               <img :id="message.image" v-if="message.image" :src="message.image">
               <div class="time">{{message.time}}</div>
             </div>
@@ -209,8 +209,6 @@ export default {
       background-color: #fff;
       padding: 5px;
       max-width: 250px;
-      word-break: break-all;
-      white-space: pre-wrap;
       img {
         width: 100%;
       }
@@ -219,6 +217,10 @@ export default {
         font-size: 10px;
         color: #9f9f9f;
         margin-top: 5px;
+      }
+      .text {
+        word-break: break-word;
+        white-space: pre-wrap;
       }
     }
   }
