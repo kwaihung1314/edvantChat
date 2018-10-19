@@ -11,7 +11,7 @@
             v-if="message.type === 'newMsg'"
             :class="{'others-message': socket.id !== message.userId}">
             <div class="message">
-              <div class="text">{{message.content}}</div>
+              <div class="text" v-linkified>{{message.content}}</div>
               <img :id="message.image" v-if="message.image" :src="message.image">
               <div class="time">{{message.time}}</div>
             </div>
