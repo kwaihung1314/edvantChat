@@ -17,11 +17,8 @@
     "save": "^2.3.2",
     "socket.io-client": "^2.1.1",
     "vue": "^2.5.2",
-<<<<<<< HEAD
     "vue-axios": "^2.1.4",
-=======
     "vue-linkify": "^1.0.1",
->>>>>>> 4e6ac8e991f2ec060e373104a0ecf47bc8b4e539
     "vue-router": "^3.0.1",
     "vuetify": "^1.2.2"
   },

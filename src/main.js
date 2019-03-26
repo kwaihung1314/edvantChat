@@ -6,14 +6,11 @@ import router from './router'
 import Vuetify from 'vuetify'
 import 'vuetify/dist/vuetify.min.css'
 import 'material-design-icons-iconfont/dist/material-design-icons.css'
-<<<<<<< HEAD
 import VueAxios from 'vue-axios'
 import axios from './services/axios'
-=======
 import linkify from 'vue-linkify'
 
 Vue.directive('linkified', linkify)
->>>>>>> 4e6ac8e991f2ec060e373104a0ecf47bc8b4e539
 
 Vue.use(Vuetify)
 
