@@ -6,8 +6,12 @@ import router from './router'
 import Vuetify from 'vuetify'
 import 'vuetify/dist/vuetify.min.css'
 import 'material-design-icons-iconfont/dist/material-design-icons.css'
+import VueAxios from 'vue-axios'
+import axios from './services/axios'
 
 Vue.use(Vuetify)
+
+Vue.use(VueAxios, axios)
 
 Vue.config.productionTip = false
 

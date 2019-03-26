@@ -1,5 +1,4 @@
 <template>
-<v-app>
   <v-container>
     <h1 class="app-header">Edvant Chatroom</h1>
     <h2 class="user-header mb-4">Your name: <span class="cyan--text">{{username}}</span></h2>
@@ -65,7 +64,6 @@
       </v-flex>
     </v-layout>
   </v-container>
-</v-app>
 </template>
 
 <script>
@@ -77,7 +75,7 @@ export default {
   data () {
     return {
       onlineArr: [],
-      socket: io('http://127.0.0.1:3000'),
+      socket: io('http://35.240.243.160:3000'),
       username: '',
       noticeCount: 0,
       inFocus: true,
