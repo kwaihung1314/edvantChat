@@ -1,7 +1,7 @@
 <template>
   <v-toolbar color="teal lighten-3"  absolute>
     <v-icon class="white--text">favorite_border</v-icon>
-    <v-toolbar-title class="white--text">
+    <v-toolbar-title class="white--text" :class="{'subheading': $vuetify.breakpoint.xsOnly}">
       {{title}}
     </v-toolbar-title>
     <v-spacer></v-spacer>
