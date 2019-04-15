@@ -3,6 +3,23 @@
     <siteBar title="Welcome to Beryl's Chat"></siteBar>
     <v-layout align-content-center justify-center wrap
       v-if="linkValid">
+      <v-flex xs12 class="my-5">
+        <v-alert
+          :value="alertSuccess"
+          type="success"
+          icon="check_circle"
+          outline>
+          <div>You have completed the registration. Click <a @click.prevent="$router.push({name: 'login'})">HERE</a> to login</div>
+        </v-alert>
+        <v-alert
+          v-model="alertFail"
+          type="error"
+          icon="warning"
+          dismissible
+          outline>
+          {{failMsg}}
+        </v-alert>
+      </v-flex>
       <v-flex xs12>
         <div class="my-5 text-sm-center">Thank you for registering Beryl's Chatroom, your account will be activated upon you set your password below.</div>
       </v-flex>
@@ -66,7 +83,10 @@ export default {
         confirmPassword: value => value == this.password || 'Password not matching.'
       },
       isValid: false,
-      code: ''
+      code: '',
+      alertSuccess: false,
+      alertFail: false,
+      failMsg: ''
     }
   },
   methods:{
@@ -79,12 +99,13 @@ export default {
         confirm_password: this.confirm_password,
         code: this.code
       })
-        .then(response => {
-          alert(response.data);
-        })
-        .catch(err => {
-          console.log(err.response);
-        })
+      .then(response => {
+        this.alertSuccess = true
+      })
+      .catch(err => {
+        this.failMsg = err.response.data
+        this.alertFail = true
+      })
     }
   },
   components: {
@@ -97,7 +118,7 @@ export default {
     // TODO: check the code validility before showing the set password page.
     this.axios.get(`/api/user/checkCode?code=${this.$route.query.code}`)
       .catch(err => {
-        this.linkValid = false;
+        this.linkValid = false
       })
   }
 }

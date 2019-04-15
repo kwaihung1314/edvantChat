@@ -4,7 +4,7 @@
     <v-layout align-content-center justify-center wrap>
       <v-flex xs12 class="my-5">
         <v-alert
-          :value="alertSuccess"
+          v-model="alertSuccess"
           type="success"
           icon="check_circle"
           dismissible
@@ -12,7 +12,7 @@
           {{successMsg}}
         </v-alert>
         <v-alert
-          :value="alertFail"
+          v-model="alertFail"
           type="error"
           icon="warning"
           dismissible

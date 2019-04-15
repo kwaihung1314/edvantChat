@@ -4,7 +4,7 @@
     <v-layout align-content-center justify-center wrap>
       <v-flex xs12 class="my-5">
         <v-alert
-          :value="alertFail"
+          v-model="alertFail"
           type="error"
           icon="warning"
           dismissible
@@ -17,7 +17,7 @@
           <v-toolbar color="blue darken-1">
             <v-toolbar-title class="white--text">Login</v-toolbar-title>
           </v-toolbar>
-          <v-form class="px-3" v-model="isValid" @submit.prevent="submitForm">
+          <v-form class="px-3 pt-3" v-model="isValid" @submit.prevent="submitForm">
             <v-text-field
               v-model="username"
               label="Username"
@@ -63,21 +63,20 @@ export default {
       if (!this.isValid) {
         return;
       }
-      alert('hihi');
-      // this.axios.post('/api/user/login', {
-      //   username: this.username,
-      //   password: this.email
-      // })
-      //   .then(response => {
-      //     this.alertSuccess = true;
-      //   })
-      //   .catch(err => {
-      //     this.failMsg = '';
-      //     for (const key in err.response.data) {
-      //       this.failMsg += ' ' + err.response.data[key];
-      //     }
-      //     this.alertFail = true;
-      //   })
+      this.axios.post('/api/user/login', {
+        username: this.username,
+        password: this.password
+      })
+      .then(response => {
+        console.log(response.data);
+      })
+      .catch(err => {
+        this.failMsg = '';
+        for (const key in err.response.data) {
+          this.failMsg += ' ' + err.response.data[key];
+        }
+        this.alertFail = true;
+      })
     }
   },
   components: {
