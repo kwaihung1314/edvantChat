@@ -45,25 +45,25 @@
 import siteBar from './siteBar'
 
 export default {
-  data() {
+  data () {
     return {
       username: '',
       password: '',
       rules: {
-        required: value => !!value || 'Required.',
+        required: value => !!value || 'Required.'
       },
       isValid: false,
       alertFail: false,
       failMsg: ''
     }
   },
-  methods:{
-    submitForm() {
-      this.alertFail = false;
+  methods: {
+    submitForm () {
+      this.alertFail = false
       if (!this.isValid) {
-        return;
+        return
       }
-      alert('hihi');
+      alert('hihi')
       // this.axios.post('/api/user/login', {
       //   username: this.username,
       //   password: this.email
