@@ -2,6 +2,14 @@
 
 > Edvant chatroom client side
 
+# demo account 1:
+# username: demo1
+# password: 123456Demo1
+
+# demo account 2:
+# username: demo2
+# password: 123456Demo2
+
 ## Build Setup
 
 ``` bash
