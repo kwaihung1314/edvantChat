@@ -1,7 +1,6 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 import chatroom from '@/components/chatroom'
-import chatName from '@/components/chatName'
 import register from '@/components/register'
 import activateAndSetPassword from '@/components/activateAndSetPassword'
 import login from '@/components/login'
@@ -18,8 +17,8 @@ export default new Router({
     },
     {
       path: '/',
-      name: 'chatName',
-      component: chatName
+      name: 'login',
+      component: login
     },
     {
       path: '/register',
@@ -30,11 +29,6 @@ export default new Router({
       path: '/activate-setpassword',
       name: 'activateAndSetPassword',
       component: activateAndSetPassword
-    },
-    {
-      path: '/login',
-      name: 'login',
-      component: login
     }
   ]
 })

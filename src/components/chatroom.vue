@@ -1,69 +1,71 @@
 <template>
-  <v-container>
-    <h1 class="app-header">Edvant Chatroom</h1>
-    <h2 class="user-header mb-4">Your name: <span class="cyan--text">{{username}}</span></h2>
-    <v-layout wrap>
-      <v-flex xs12>
-        <div class="teal lighten-3 online-box pa-3">
-          <div class="header">Currently online</div>
-          <v-chip v-for="(user, index) in onlineArr" :key="index">
-            <v-avatar class="teal">{{user.name.substr(0,1).toUpperCase()}}</v-avatar>
-            {{user.name}}
-          </v-chip>
-          <div class="typing" v-show="typingPerson">{{typingPerson}} is typing...</div>
-        </div>
-      </v-flex>
-    </v-layout>
-    <v-layout wrap>
-      <v-flex xs12>
-        <group-chatbox
-          ref="group"
-          :socket="socket"
-          :username="username"/>
-      </v-flex>
-    </v-layout>
-    <v-layout wrap class="mt-4">
-      <v-flex xs3>
-        <div class="onlineSide teal lighten-3">
-          <div class="header teal lighten-4 pa-2">
-            <span>Private Chat</span>
+  <v-app>
+    <v-container>
+      <h1 class="app-header">Edvant Chatroom</h1>
+      <h2 class="user-header mb-4">Your name: <span class="cyan--text">{{username}}</span></h2>
+      <v-layout wrap>
+        <v-flex xs12>
+          <div class="teal lighten-3 online-box pa-3">
+            <div class="header">Currently online</div>
+            <v-chip v-for="(user, index) in onlineArr" :key="index">
+              <v-avatar class="teal">{{user.name.substr(0,1).toUpperCase()}}</v-avatar>
+              {{user.name}}
+            </v-chip>
+            <div class="typing" v-show="typingPerson">{{typingPerson}} is typing...</div>
           </div>
-          <v-list class="teal lighten-3">
-            <v-list-tile
-              v-for="(user, index) in onlineArr"
-              :key="index"
-              avatar
-              @click="selectChat(index)">
-              <v-list-tile-action>
-                <v-icon color="#FFB300" v-show="user.flag">priority_high</v-icon>
-              </v-list-tile-action>
-              <v-list-tile-content>
-                <v-list-tile-title v-text="user.name"></v-list-tile-title>
-              </v-list-tile-content>
-              <v-list-tile-avatar>
-                <v-avatar class="teal" size="40">{{user.name.substr(0,1).toUpperCase()}}</v-avatar>
-              </v-list-tile-avatar>
-            </v-list-tile>
-          </v-list>
-        </div>
-      </v-flex>
-      <v-flex xs9>
-        <private-chatbox
-          v-for="(user, index) in onlineArr"
-          :key="index"
-          :ref="user.id"
-          v-show="selectedChat === index"
-          :socket="socket"
-          :username="username"
-          :boxId="user.id"
-          :boxPerson="user.name"/>
-        <div class="emptyChat blue lighten-4 px-3" v-show="onlineArr.length === 0 || selectedChat === null">
-          <div class="statement" v-show="selectedChat === null">{{emptyChatName}} left the chatroom. Please select from the list to process other chat.</div>
-          <div class="statement" v-show="onlineArr.length === 0">No one is online!</div>
-        </div>
-      </v-flex>
-    </v-layout>
-  </v-container>
+        </v-flex>
+      </v-layout>
+      <v-layout wrap>
+        <v-flex xs12>
+          <group-chatbox
+            ref="group"
+            :socket="socket"
+            :username="username"/>
+        </v-flex>
+      </v-layout>
+      <v-layout wrap class="mt-4">
+        <v-flex xs3>
+          <div class="onlineSide teal lighten-3">
+            <div class="header teal lighten-4 pa-2">
+              <span>Private Chat</span>
+            </div>
+            <v-list class="teal lighten-3">
+              <v-list-tile
+                v-for="(user, index) in onlineArr"
+                :key="index"
+                avatar
+                @click="selectChat(index)">
+                <v-list-tile-action>
+                  <v-icon color="#FFB300" v-show="user.flag">priority_high</v-icon>
+                </v-list-tile-action>
+                <v-list-tile-content>
+                  <v-list-tile-title v-text="user.name"></v-list-tile-title>
+                </v-list-tile-content>
+                <v-list-tile-avatar>
+                  <v-avatar class="teal" size="40">{{user.name.substr(0,1).toUpperCase()}}</v-avatar>
+                </v-list-tile-avatar>
+              </v-list-tile>
+            </v-list>
+          </div>
+        </v-flex>
+        <v-flex xs9>
+          <private-chatbox
+            v-for="(user, index) in onlineArr"
+            :key="index"
+            :ref="user.id"
+            v-show="selectedChat === index"
+            :socket="socket"
+            :username="username"
+            :boxId="user.id"
+            :boxPerson="user.name"/>
+          <div class="emptyChat blue lighten-4 px-3" v-show="onlineArr.length === 0 || selectedChat === null">
+            <div class="statement" v-show="selectedChat === null">{{emptyChatName}} left the chatroom. Please select from the list to process other chat.</div>
+            <div class="statement" v-show="onlineArr.length === 0">No one is online!</div>
+          </div>
+        </v-flex>
+      </v-layout>
+    </v-container>
+  </v-app>
 </template>
 
 <script>
@@ -75,7 +77,7 @@ export default {
   data () {
     return {
       onlineArr: [],
-      socket: io('http://35.240.243.160:3000'),
+      socket: io(process.env.API_BASE),
       username: '',
       noticeCount: 0,
       inFocus: true,
@@ -260,6 +262,10 @@ export default {
 </script>
 
 <style scoped lang="scss">
+.container {
+  font-family: monospace, 'Courier New', Courier;
+}
+
 .app-header, .user-header {
   text-align: center;
 }

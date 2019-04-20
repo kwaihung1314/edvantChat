@@ -68,19 +68,19 @@
 <script>
 import siteBar from './siteBar'
 export default {
-  data() {
+  data () {
     return {
       linkValid: true,
       password: '',
       confirm_password: '',
       rules: {
         required: value => !!value || 'Required.',
-        atleastEightChar: value => value.length >= 8  || 'Password should contain at least 8 characters.',
+        atleastEightChar: value => value.length >= 8 || 'Password should contain at least 8 characters.',
         password: value => {
-          let pattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.{8,})/;
+          let pattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.{8,})/
           return pattern.test(value) || 'Password not strong enough.'
         },
-        confirmPassword: value => value == this.password || 'Password not matching.'
+        confirmPassword: value => value === this.password || 'Password not matching.'
       },
       isValid: false,
       code: '',
@@ -89,35 +89,35 @@ export default {
       failMsg: ''
     }
   },
-  methods:{
-    submitForm() {
+  methods: {
+    submitForm () {
       if (!this.isValid) {
-        return;
+        return
       }
       this.axios.post('/api/user/activate-setpassword', {
         password: this.password,
         confirm_password: this.confirm_password,
         code: this.code
       })
-      .then(response => {
-        this.alertSuccess = true
-      })
-      .catch(err => {
-        this.failMsg = err.response.data
-        this.alertFail = true
-      })
+        .then(response => {
+          this.alertSuccess = true
+        })
+        .catch(err => {
+          this.failMsg = err.response.data
+          this.alertFail = true
+        })
     }
   },
   components: {
     siteBar
   },
-  mounted() {
-    this.code = this.$route.query.code;
+  mounted () {
+    this.code = this.$route.query.code
   },
-  beforeCreate() {
+  beforeCreate () {
     // TODO: check the code validility before showing the set password page.
     this.axios.get(`/api/user/checkCode?code=${this.$route.query.code}`)
-      .catch(err => {
+      .catch(() => {
         this.linkValid = false
       })
   }

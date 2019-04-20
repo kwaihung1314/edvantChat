@@ -55,7 +55,7 @@
 import siteBar from './siteBar'
 
 export default {
-  data() {
+  data () {
     return {
       username: '',
       email: '',
@@ -63,7 +63,7 @@ export default {
         required: value => !!value || 'Required.',
         lessThanTwentyChar: value => value.length <= 20 || 'no more than 20 characters.',
         email: value => {
-          let pattern = /^.+@[^\.].*\.[a-z]{2,}$/;
+          let pattern = /^.+@[^.].*\.[a-z]{2,}$/
           return pattern.test(value) || 'Invalid email.'
         }
       },
@@ -74,25 +74,25 @@ export default {
       failMsg: ''
     }
   },
-  methods:{
-    submitForm() {
-      this.alertFail = this.alertSuccess = false;
+  methods: {
+    submitForm () {
+      this.alertFail = this.alertSuccess = false
       if (!this.isValid) {
-        return;
+        return
       }
       this.axios.post('/api/user/register', {
         username: this.username,
         email: this.email
       })
         .then(response => {
-          this.alertSuccess = true;
+          this.alertSuccess = true
         })
         .catch(err => {
-          this.failMsg = '';
+          this.failMsg = ''
           for (const key in err.response.data) {
-            this.failMsg += ' ' + err.response.data[key];
+            this.failMsg += ' ' + err.response.data[key]
           }
-          this.alertFail = true;
+          this.alertFail = true
         })
     }
   },

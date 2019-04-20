@@ -31,6 +31,7 @@
               :rules="[rules.required]"
               type="password"
             ></v-text-field>
+            <v-card-text class="py-0"><a @click.prevent="$router.push({name: 'register'})">Register now!</a></v-card-text>
             <v-layout row justify-center class="py-2">
               <v-btn flat color="orange darken-3" type="submit">Submit</v-btn>
             </v-layout>
@@ -43,44 +44,61 @@
 
 <script>
 import siteBar from './siteBar'
+import jwt from 'jsonwebtoken'
 
 export default {
-  data() {
+  data () {
     return {
       username: '',
       password: '',
       rules: {
-        required: value => !!value || 'Required.',
+        required: value => !!value || 'Required.'
       },
       isValid: false,
       alertFail: false,
       failMsg: ''
     }
   },
-  methods:{
-    submitForm() {
-      this.alertFail = false;
+  methods: {
+    submitForm () {
+      this.alertFail = false
       if (!this.isValid) {
-        return;
+        return
       }
       this.axios.post('/api/user/login', {
         username: this.username,
         password: this.password
       })
-      .then(response => {
-        console.log(response.data);
-      })
-      .catch(err => {
-        this.failMsg = '';
-        for (const key in err.response.data) {
-          this.failMsg += ' ' + err.response.data[key];
+        .then(response => {
+          console.log(response.data)
+          localStorage.setItem('token', response.data.token)
+          // TODO: rediect to main page
+        })
+        .catch(err => {
+          this.failMsg = ''
+          if (err.response.status === 403) {
+            this.failMsg = err.response.data
+          }
+          if (err.response.status === 401) {
+            this.failMsg = 'User unauthorized'
+          }
+          this.alertFail = true
+        })
+    },
+    checkTokenExist () {
+      if (localStorage.token) {
+        let user = jwt.decode(localStorage.token)
+        if (user.exp > (Date.now() / 1000)) {
+          // TODO: redirect to main page
         }
-        this.alertFail = true;
-      })
+      }
     }
   },
   components: {
     siteBar
+  },
+  beforeMount () {
+    this.checkTokenExist()
   }
 }
 </script>
