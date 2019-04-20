@@ -1,6 +1,15 @@
 <template>
   <v-app>
     <v-container>
+      <div class="loadingOverlay" v-if="!isAuth">
+        <div class="loadingSign">
+          <v-progress-circular
+            indeterminate
+            color="primary"
+            :size="50"
+          ></v-progress-circular>
+        </div>
+      </div>
       <h1 class="app-header">Edvant Chatroom</h1>
       <h2 class="user-header mb-4">Your name: <span class="cyan--text">{{username}}</span></h2>
       <v-layout wrap>
@@ -52,11 +61,10 @@
           <private-chatbox
             v-for="(user, index) in onlineArr"
             :key="index"
-            :ref="user.id"
+            :ref="user.name"
             v-show="selectedChat === index"
             :socket="socket"
             :username="username"
-            :boxId="user.id"
             :boxPerson="user.name"/>
           <div class="emptyChat blue lighten-4 px-3" v-show="onlineArr.length === 0 || selectedChat === null">
             <div class="statement" v-show="selectedChat === null">{{emptyChatName}} left the chatroom. Please select from the list to process other chat.</div>
@@ -73,11 +81,17 @@ import io from 'socket.io-client'
 import debounce from 'lodash.debounce'
 import groupChatbox from '@/components/groupChatbox'
 import privateChatbox from '@/components/privateChatbox'
+import jwt from 'jsonwebtoken'
+
 export default {
   data () {
     return {
       onlineArr: [],
-      socket: io(process.env.API_BASE),
+      socket: io(process.env.API_BASE, {
+        query: {
+          token: localStorage.getItem('token')
+        }
+      }),
       username: '',
       noticeCount: 0,
       inFocus: true,
@@ -85,7 +99,8 @@ export default {
       typingPerson: null,
       // private chat index, default [0]
       selectedChat: 0,
-      emptyChatName: ''
+      emptyChatName: '',
+      isAuth: false
     }
   },
   components: {
@@ -114,7 +129,7 @@ export default {
     }
   },
   mounted () {
-    this.username = this.$route.params.name
+    // this.username = this.$route.params.name
     this.socket.on('connect', () => {
       this.socket.emit('user entered', this.username)
     })
@@ -122,21 +137,21 @@ export default {
       for (let key in list) {
         this.onlineArr.push({
           name: list[key],
-          id: key,
+          // id: key,
           flag: false
         })
       }
     })
     this.socket.on('update users', (user, msg, type) => {
-      if (type === 'enter' && user.id !== this.socket.id) {
+      if (type === 'enter' && user.name !== this.username) {
         this.onlineArr.push({
           name: user.name,
-          id: user.id,
+          // id: user.id,
           flag: false
         })
       } else {
         for (let i = 0; i < this.onlineArr.length; i++) {
-          if (this.onlineArr[i].id === user.id) {
+          if (this.onlineArr[i].name === user.name) {
             if (this.selectedChat === i) {
               this.showEmptyChat(this.onlineArr[i].name)
             }
@@ -155,7 +170,7 @@ export default {
     this.socket.on('new group message', (message) => {
       this.$refs['group'].pushMessage({
         content: message.content,
-        userId: message.userId,
+        // userId: message.userId,
         username: message.username,
         type: 'newMsg',
         time: message.time
@@ -172,7 +187,7 @@ export default {
       let fileObj = {
         content: '',
         image: window.URL.createObjectURL(file),
-        userId: message.userId,
+        // userId: message.userId,
         username: message.username,
         type: 'newMsg',
         time: message.time
@@ -183,14 +198,14 @@ export default {
     })
     // event of ppl sent you private msg
     this.socket.on('new private message', (message) => {
-      this.$refs[(message.fromId)][0].pushMessage({
+      this.$refs[(message.fromName)][0].pushMessage({
         content: message.content,
-        userId: message.fromId,
+        username: message.fromName,
         type: 'newMsg',
         time: message.time
       })
       for (let i = 0; i < this.onlineArr.length; i++) {
-        if (this.onlineArr[i].id === message.fromId) {
+        if (this.onlineArr[i].name === message.fromName) {
           if (this.selectedChat !== i) {
             this.onlineArr[i].flag = true
           }
@@ -202,9 +217,9 @@ export default {
     })
     // event of you private msg other ppl
     this.socket.on('my private message', (message) => {
-      this.$refs[(message.toId)][0].pushMessage({
+      this.$refs[(message.toName)][0].pushMessage({
         content: message.content,
-        userId: message.fromId,
+        username: message.fromName,
         type: 'newMsg',
         time: message.time
       })
@@ -214,13 +229,13 @@ export default {
       let fileObj = {
         content: '',
         image: window.URL.createObjectURL(file),
-        userId: message.fromId,
+        username: message.fromName,
         type: 'newMsg',
         time: message.time
       }
-      this.$refs[(message.fromId)][0].pushImage(fileObj)
+      this.$refs[(message.fromName)][0].pushImage(fileObj)
       for (let i = 0; i < this.onlineArr.length; i++) {
-        if (this.onlineArr[i].id === message.fromId) {
+        if (this.onlineArr[i].name === message.fromName) {
           if (this.selectedChat !== i) {
             this.onlineArr[i].flag = true
           }
@@ -235,7 +250,7 @@ export default {
       let fileObj = {
         content: '',
         image: window.URL.createObjectURL(file),
-        userId: message.fromId,
+        username: message.fromName,
         type: 'newMsg',
         time: message.time
       }
@@ -257,6 +272,23 @@ export default {
   },
   beforeDestroy () {
     this.socket.close()
+  },
+  beforeCreate () {
+    let token = localStorage.getItem('token')
+    if (token) {
+      this.axios.get(`/api/user/checkCode?code=${token}&type=key`)
+        .then(() => {
+          this.isAuth = true
+          this.username = jwt.decode(token).username
+        })
+        .catch((err) => {
+          if (err.response.status === 401) {
+            window.location.replace('/')
+          }
+        })
+    } else {
+      window.location.replace('/')
+    }
   }
 }
 </script>
@@ -306,6 +338,20 @@ export default {
   flex-direction: column;
   .statement {
     text-align: center;
+  }
+}
+
+.loadingOverlay {
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  .loadingSign {
+    padding-top: 200px;
+    display: flex;
+    justify-content: center;
   }
 }
 </style>

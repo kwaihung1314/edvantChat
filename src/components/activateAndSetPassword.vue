@@ -116,7 +116,7 @@ export default {
   },
   beforeCreate () {
     // TODO: check the code validility before showing the set password page.
-    this.axios.get(`/api/user/checkCode?code=${this.$route.query.code}`)
+    this.axios.get(`/api/user/checkCode?code=${this.$route.query.code}&type=hash`)
       .catch(() => {
         this.linkValid = false
       })

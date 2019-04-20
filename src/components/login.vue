@@ -70,9 +70,9 @@ export default {
         password: this.password
       })
         .then(response => {
-          console.log(response.data)
+          // console.log(response.data)
           localStorage.setItem('token', response.data.token)
-          // TODO: rediect to main page
+          window.location.replace('/main.html')
         })
         .catch(err => {
           this.failMsg = ''
@@ -89,7 +89,7 @@ export default {
       if (localStorage.token) {
         let user = jwt.decode(localStorage.token)
         if (user.exp > (Date.now() / 1000)) {
-          // TODO: redirect to main page
+          window.location.replace('/main.html')
         }
       }
     }

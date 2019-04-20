@@ -9,7 +9,7 @@
           :key="index">
           <div class="message-block mb-2"
             v-if="message.type === 'newMsg'"
-            :class="{'others-message': socket.id !== message.userId}">
+            :class="{'others-message': username !== message.username}">
             <div class="message">
               <div class="text" v-linkified>{{message.content}}</div>
               <img :id="message.image" v-if="message.image" :src="message.image">
@@ -70,15 +70,15 @@ export default {
   props: {
     socket: Object,
     username: String,
-    boxId: String, // socket ID of the person you are talking to
+    // boxId: String, // socket ID of the person you are talking to
     boxPerson: String // name of the person you are talking to
   },
   methods: {
     sendMessage () {
       let msgTime = new Date()
       this.socket.emit('private message', {
-        fromId: this.socket.id,
-        toId: this.boxId,
+        fromName: this.username,
+        toName: this.boxPerson,
         content: this.messageInput,
         time: `${msgTime.getHours().toString().length > 1 ? msgTime.getHours() : ('0' + msgTime.getHours())}:${msgTime.getMinutes().toString().length > 1 ? msgTime.getMinutes() : ('0' + msgTime.getMinutes())}`
       })
@@ -93,8 +93,8 @@ export default {
     sendImage () {
       let msgTime = new Date()
       this.socket.emit('private image', {
-        fromId: this.socket.id,
-        toId: this.boxId,
+        fromName: this.username,
+        toName: this.boxPerson,
         time: `${msgTime.getHours().toString().length > 1 ? msgTime.getHours() : ('0' + msgTime.getHours())}:${msgTime.getMinutes().toString().length > 1 ? msgTime.getMinutes() : ('0' + msgTime.getMinutes())}`
       }, this.imageSelected.file)
       this.clearImageModel()

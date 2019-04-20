@@ -9,7 +9,7 @@
           :key="index">
           <div class="message-block mb-2"
             v-if="message.type === 'newMsg'"
-            :class="{'others-message': socket.id !== message.userId}">
+            :class="{'others-message': username !== message.username}">
             <div class="message">
               <div class="senderName">{{message.username}}</div><div class="text" v-linkified>{{message.content}}</div>
               <img :id="message.image"
@@ -29,11 +29,11 @@
     <div class="typing-box blue lighten-4">
       <form action="" @submit.prevent="sendMessage">
         <v-layout wrap>
-          <v-flex xs8 sm9 md10 class="input-box pa-3">
+          <v-flex xs12 sm9 md10 class="input-box pa-3">
             <textarea placeholder="Enter message" v-model="messageInput" @keydown="textareaKeyDown" @keyup="textareaKeyUp"
               @input="sendTyping"></textarea>
           </v-flex>
-          <v-flex xs4 sm3 md2 align-center justify-center class="send-box">
+          <v-flex xs12 sm3 md2 align-center justify-center class="send-box">
             <input type="file" id="imageInput" accept="image/*" v-show="false" @change="viewSendImage($event)">
             <v-btn fab light small color="#E53935" @click="triggerImage">
               <v-icon color="#ffffff" size="20">photo_library</v-icon>
@@ -81,7 +81,7 @@ export default {
     sendMessage () {
       let msgTime = new Date()
       this.socket.emit('group message', {
-        userId: this.socket.id,
+        // userId: this.socket.id,
         username: this.username,
         content: this.messageInput,
         time: `${msgTime.getHours().toString().length > 1 ? msgTime.getHours() : ('0' + msgTime.getHours())}:${msgTime.getMinutes().toString().length > 1 ? msgTime.getMinutes() : ('0' + msgTime.getMinutes())}`
@@ -97,7 +97,7 @@ export default {
     sendImage () {
       let msgTime = new Date()
       this.socket.emit('group image', {
-        userId: this.socket.id,
+        // userId: this.socket.id,
         username: this.username,
         time: `${msgTime.getHours().toString().length > 1 ? msgTime.getHours() : ('0' + msgTime.getHours())}:${msgTime.getMinutes().toString().length > 1 ? msgTime.getMinutes() : ('0' + msgTime.getMinutes())}`
       }, this.imageSelected.file)
