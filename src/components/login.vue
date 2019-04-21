@@ -72,7 +72,7 @@ export default {
         .then(response => {
           // console.log(response.data)
           localStorage.setItem('token', response.data.token)
-          window.location.replace('/main.html')
+          this.$router.push({name: 'chatroom'})
         })
         .catch(err => {
           this.failMsg = ''
@@ -89,7 +89,7 @@ export default {
       if (localStorage.token) {
         let user = jwt.decode(localStorage.token)
         if (user.exp > (Date.now() / 1000)) {
-          window.location.replace('/main.html')
+          this.$router.push({name: 'chatroom'})
         }
       }
     }

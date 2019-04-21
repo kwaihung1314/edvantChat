@@ -11,7 +11,7 @@ export default new Router({
   mode: 'history',
   routes: [
     {
-      path: '/chat/:name',
+      path: '/chat',
       name: 'chatroom',
       component: chatroom
     },
